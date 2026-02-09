@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SoccerData | Noticias de fútbol y futbolistas</title>
+
+  <!-- SEO -->
+  <meta name="description" content="SoccerData: noticias de fútbol internacional, futbolistas, fichajes y actualidad dentro y fuera del campo.">
+  <meta name="keywords" content="fútbol, futbolistas, noticias fútbol, fichajes, champions, laliga, premier league">
+  <meta name="author" content="SoccerData">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph (redes sociales) -->
+  <meta property="og:title" content="SoccerData">
+  <meta property="og:description" content="Las noticias de fútbol más buscadas, actualizadas cada día.">
+  <meta property="og:type" content="website">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f4f4;
+      color: #222;
+    }
+
+    header {
+      background: #001219;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.3rem;
+    }
+
+    header p {
+      margin-top: 8px;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .buscador {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      background: white;
+    }
+
+    .buscador input {
+      width: 90%;
+      max-width: 500px;
+      padding: 12px 15px;
+      font-size: 1rem;
+      border-radius: 25px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    #actualizando {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 15px;
+      flex: 1;
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin: 0 0 10px;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .card a {
+      margin-top: auto;
+      padding: 12px;
+      text-align: center;
+      background: #001219;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    footer {
+      background: #001219;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>SoccerData</h1>
+  <p>Noticias de fútbol y futbolistas, dentro y fuera del campo</p>
+</header>
+
+<div class="buscador">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder="Buscar futbolista o noticia (Messi, Mbappé, fichaje...)"
+    onkeyup="filtrarNoticias()"
+  >
+</div>
+
+<div id="actualizando">Actualizando noticias...</div>
+
+<main id="noticias"></main>
+
+<footer>
+  © 2026 SoccerData · Fútbol internacional actualizado a diario
+</footer>
+
+<script>
+  const API_KEY = "4097ea2391ae4462b5a26eaefe16cac3";
+  const URL = `https://newsapi.org/v2/everything?q=futbol OR soccer OR footballer&language=es&sortBy=publishedAt&pageSize=20&apiKey=${API_KEY}`;
+
+  let todasLasNoticias = [];
+
+  async function cargarNoticias() {
+    const aviso = document.getElementById("actualizando");
+    aviso.style.display = "block";
+
+    try {
+      const respuesta = await fetch(URL);
+      const data = await respuesta.json();
+      todasLasNoticias = data.articles;
+      mostrarNoticias(todasLasNoticias);
+    } catch (error) {
+      document.getElementById("noticias").innerHTML = "<p>Error cargando noticias.</p>";
+      console.error(error);
+    } finally {
+      aviso.style.display = "none";
+    }
+  }
+
+  function mostrarNoticias(lista) {
+    const contenedor = document.getElementById("noticias");
+    contenedor.innerHTML = "";
+
+    lista.forEach(noticia => {
+      if (!noticia.title || !noticia.urlToImage) return;
+
+      contenedor.innerHTML += `
+        <div class="card">
+          <img src="${noticia.urlToImage}" alt="${noticia.title}">
+          <div class="card-content">
+            <h3>${noticia.title}</h3>
+            <p>${noticia.description || ""}</p>
+          </div>
+          <a href="${noticia.url}" target="_blank">Leer noticia</a>
+        </div>
+      `;
+    });
+  }
+
+  function filtrarNoticias() {
+    const texto = document.getElementById("searchInput").value.toLowerCase();
+    const filtradas = todasLasNoticias.filter(n =>
+      n.title.toLowerCase().includes(texto) ||
+      (n.description && n.description.toLowerCase().includes(texto))
+    );
+    mostrarNoticias(filtradas);
+  }
+
+  // Carga inicial
+  cargarNoticias();
+
+  // 🔁 Actualiza cada 1 hora (3600000 ms)
+  setInterval(cargarNoticias, 3600000);
+
+</script>
+
+</body>
+</html>
